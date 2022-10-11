@@ -39,10 +39,10 @@ class CategoryCreateView(CreateView):
     def post(self, request, *args, **kwargs):
         cat_list = json.loads(request.body)
 
-        cat = Category.objects.create(name=cat_list["name"],)
+        cat = Category.objects.create(name=cat_list["name"], )
 
         return JsonResponse({"id": cat.id,
-                             "name": cat.name}, safe=False,
+                             "name": cat.name, }, safe=False,
                             json_dumps_params={'ensure_ascii': False})
 
 
@@ -53,18 +53,14 @@ class CategoryUpdateView(UpdateView):
 
     def patch(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
-        cat_data = json.load(request.body)
+        cat_data = json.loads(request.body)
 
         self.object.name = cat_data["name"]
-
-        try:
-            self.object.full_clean()
-        except ValidationError as e:
-            return JsonResponse(e.message_dict, status=422)
 
         self.object.save()
 
         return JsonResponse({
+            "id": self.object.id,
             "name": self.object.name,
         })
 
@@ -76,7 +72,7 @@ class AdsUpdateView(UpdateView):
 
     def patch(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
-        ads_data = json.load(request.body)
+        ads_data = json.loads(request.body)
 
         self.object.name = ads_data["name"]
         self.object.author = ads_data["author"]
@@ -84,14 +80,11 @@ class AdsUpdateView(UpdateView):
         self.object.description = ads_data["description"]
         self.object.address = ads_data["address"]
         self.object.is_published = ads_data["is_published"]
-        try:
-            self.object.full_clean()
-        except ValidationError as e:
-            return JsonResponse(e.message_dict, status=422)
 
         self.object.save()
 
         return JsonResponse({
+            "id": self.object.id,
             "name": self.object.name,
             "author": self.object.author,
             "price": self.object.price,
@@ -136,7 +129,7 @@ class AdsCreateView(CreateView):
             price=ads_list["price"],
             description=ads_list["description"],
             address=ads_list["address"],
-            is_published=ads_list["is_published"]
+            is_published=ads_list["is_published"],
         )
 
         return JsonResponse({
@@ -146,8 +139,8 @@ class AdsCreateView(CreateView):
             "price": ads.price,
             "description": ads.description,
             "address": ads.address,
-            "is_published": ads.is_published
-        })
+            "is_published": ads.is_published,
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class CategoryDetailView(DetailView):
