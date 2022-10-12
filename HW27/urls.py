@@ -19,5 +19,5 @@ urlpatterns = [
     path('cat/update/<int:pk>/', CategoryUpdateView.as_view(), name='update_ads'),
     path('cat/delete/<int:pk>/', CategoryDeleteView.as_view(), name='delete_cat'),
     path('ads/delete/<int:pk>/', AdsDeleteView.as_view(), name='delete_ads'),
-    path('ads/<int:pk>/upload_image/',AdUpdateImageView.as_view(), name='upload_image')
+    path('ads/<int:pk>/upload_image/', AdUpdateImageView.as_view(), name='upload_image')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

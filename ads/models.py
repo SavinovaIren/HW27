@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 class Category(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
 
     class Meta:
         verbose_name = 'Категория'
@@ -36,7 +36,7 @@ class User(models.Model):
     location_id = models.ManyToManyField(Location)
 
     def __str__(self):
-        return {self.username}
+        return self.username
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -45,12 +45,12 @@ class User(models.Model):
 
 class Ads(models.Model):
     name = models.CharField(max_length=200)
-    author_id = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="ads")
+    author = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="ads")
     price = models.PositiveIntegerField()
     description = models.TextField(null=True)
     is_published = models.BooleanField(default=False)
     image = models.ImageField(upload_to='media/', null=True)
-    category_id = models.ForeignKey(Category, null=True, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE)
     def __str__(self):
         return self.name
     class Meta:
