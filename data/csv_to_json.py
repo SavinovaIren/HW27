@@ -31,4 +31,4 @@ def convert_file(csv_file, json_file, model_name):
     with open(json_file,'w', encoding='utf-8') as json_f:
         json_f.write(json.dumps(result,ensure_ascii=False))
 
-convert_file(DATA_USER,JSON_USER, "ads.user")
+convert_file(DATA_ADS,JSON_ADS, "ads.user")

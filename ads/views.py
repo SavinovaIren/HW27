@@ -62,7 +62,27 @@ class CategoryUpdateView(UpdateView):
         return JsonResponse({
             "id": self.object.id,
             "name": self.object.name,
-        })
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AdUpdateImageView(UpdateView):
+    model = Ads
+    fields = ["image"]
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.image = request.FILES.get("image")
+        self.object.save()
+
+        return JsonResponse({
+            "id": self.object.id,
+            "name": self.object.name,
+            "author_id": self.object.author_id,
+            "price": self.object.price,
+            "description": self.object.description,
+            "image": self.object.image.url,
+            "is_published": self.object.is_published,
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -75,10 +95,10 @@ class AdsUpdateView(UpdateView):
         ads_data = json.loads(request.body)
 
         self.object.name = ads_data["name"]
-        self.object.author = ads_data["author"]
+        self.object.author_id = ads_data["author_id"]
         self.object.price = ads_data["price"]
         self.object.description = ads_data["description"]
-        self.object.address = ads_data["address"]
+        self.object.image = ads_data["image"]
         self.object.is_published = ads_data["is_published"]
 
         self.object.save()
@@ -86,13 +106,13 @@ class AdsUpdateView(UpdateView):
         return JsonResponse({
             "id": self.object.id,
             "name": self.object.name,
-            "author": self.object.author,
+            "author_id": self.object.author_id,
             "price": self.object.price,
             "description": self.object.description,
-            "address": self.object.address,
+            "image": self.object.image,
             "is_published": self.object.is_published,
 
-        })
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class AdsView(ListView):
@@ -107,10 +127,13 @@ class AdsView(ListView):
         response = []
         for ad in self.object_list:
             response.append({
-                "id": ad.pk,
-                "name": ad.name,
-                "author": ad.author,
-                "price": ad.price,
+                "id": self.object_list.id,
+                "name": self.object_list.name,
+                "author_id": self.object_list.author_id,
+                "price": self.object_list.price,
+                "description": self.object_list.description,
+                "image": self.object_list.image,
+                "is_published": self.object_list.is_published,
             })
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
 
@@ -125,10 +148,10 @@ class AdsCreateView(CreateView):
 
         ads = Ads.objects.create(
             name=ads_list["name"],
-            author=ads_list["author"],
+            author_id=ads_list["author_id"],
             price=ads_list["price"],
             description=ads_list["description"],
-            address=ads_list["address"],
+            image=ads_list["image"],
             is_published=ads_list["is_published"],
         )
 
@@ -158,7 +181,7 @@ class AdsDetailView(DetailView):
         return JsonResponse({
             "id": ads.pk,
             "name": ads.name,
-            "author": ads.author,
+            "author_id": ads.author_id,
             "price": ads.price,
         }, safe=False, json_dumps_params={'ensure_ascii': False})
 
