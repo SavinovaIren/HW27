@@ -20,6 +20,6 @@ urlpatterns = [
     path('cat/delete/<int:pk>/', CategoryDeleteView.as_view(), name='delete_cat'),
     path('ads/delete/<int:pk>/', AdsDeleteView.as_view(), name='delete_ads'),
     path('ads/<int:pk>/upload_image/', AdUpdateImageView.as_view(), name='upload_image'),
-    path('user/',UserCreateView.as_view()),
-    path('user/create/',UserListView.as_view()),
+    path('user/create/',UserCreateView.as_view()),
+    path('user/',UserListView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

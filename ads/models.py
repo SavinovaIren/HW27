@@ -16,7 +16,7 @@ class Category(models.Model):
 class Location(models.Model):
     name = models.CharField(max_length=200)
     lat = models.DecimalField(max_digits=8, decimal_places=6)
-    lang = models.DecimalField(max_digits=8, decimal_places=6)
+    lng = models.DecimalField(max_digits=8, decimal_places=6)
 
     class Meta:
         verbose_name = 'Локация'
@@ -33,7 +33,7 @@ class User(models.Model):
     password = models.CharField(max_length=50)
     role = models.CharField(max_length=50, default="member")
     age = models.PositiveIntegerField()
-    location_id = models.ManyToManyField(Location)
+    location = models.ManyToManyField(Location)
 
     def __str__(self):
         return self.username
@@ -43,7 +43,7 @@ class User(models.Model):
         verbose_name_plural = 'Пользователи'
 
 
-class Ads(models.Model):
+class Ad(models.Model):
     name = models.CharField(max_length=200)
     author = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="ads")
     price = models.PositiveIntegerField()

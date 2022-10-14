@@ -8,7 +8,7 @@ from django.views.generic import DetailView, CreateView, ListView, UpdateView, D
 import json
 
 from HW27 import settings
-from ads.models import Category, Ads, User, Location
+from ads.models import Category, Ad, User, Location
 
 
 def main(request):
@@ -69,7 +69,7 @@ class CategoryUpdateView(UpdateView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AdUpdateImageView(UpdateView):
-    model = Ads
+    model = Ad
     fields = ["image"]
 
     def post(self, request, *args, **kwargs):
@@ -88,7 +88,7 @@ class AdUpdateImageView(UpdateView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AdsUpdateView(UpdateView):
-    model = Ads
+    model = Ad
     fields = ['name', "author", "price", "description", "category", "is_published"]
 
     def patch(self, request, *args, **kwargs):
@@ -97,18 +97,18 @@ class AdsUpdateView(UpdateView):
 
         self.object.name = ads_data["name"]
         self.object.price = ads_data["price"]
-        self.object.author = ads_data["author"]
+        self.object.author = get_object_or_404(User, username=ads_data["author"])
         self.object.description = ads_data["description"]
         self.object.is_published = ads_data["is_published"]
-        self.object.category = ads_data["category"]
+        self.object.category = get_object_or_404(Category, name=ads_data["category"])
 
         self.object.save()
 
         return JsonResponse({
             "id": self.object.id,
             "name": self.object.name,
-            "author_id_id": self.object.author_id_id,
             "author": self.object.author,
+            "category": self.object.category,
             "price": self.object.price,
             "description": self.object.description,
             "image": self.object.image.url,
@@ -118,8 +118,8 @@ class AdsUpdateView(UpdateView):
 
 
 class AdsView(ListView):
-    model = Ads
-    queryset = Ads.objects.all()
+    model = Ad
+    queryset = Ad.objects.all()
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
@@ -147,15 +147,15 @@ class AdsView(ListView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdsCreateView(CreateView):
-    model = Ads
+    model = Ad
     fields = ["name", "author", "category", "price", "description", "is_published"]
 
     def post(self, request, *args, **kwargs):
         ads_list = json.loads(request.body)
-        author = get_object_or_404(User, ads_list['author'])
-        category = get_object_or_404(Category, ads_list['category'])
+        author = get_object_or_404(User, username=ads_list['author'])
+        category = get_object_or_404(Category, name=ads_list['category'])
 
-        ads = Ads.objects.create(
+        ads = Ad.objects.create(
             name=ads_list["name"],
             author=author,
             category=category,
@@ -175,8 +175,8 @@ class AdsCreateView(CreateView):
 
 
 class CategoryDetailView(DetailView):
-    def get(self, request, pk):
-        cat = get_object_or_404(Category, id=pk)
+    def get(self, request, *args, **kwargs):
+        cat = self.get_object()
         return JsonResponse({
             "id": cat.id,
             "name": cat.name,
@@ -184,8 +184,8 @@ class CategoryDetailView(DetailView):
 
 
 class AdsDetailView(DetailView):
-    def get(self, request, pk):
-        ads = get_object_or_404(Ads, id=pk)
+    def get(self, request, *args, **kwargs):
+        ads = self.get_object()
         return JsonResponse({
             "id": ads.id,
             "name": ads.name,
@@ -194,7 +194,7 @@ class AdsDetailView(DetailView):
             "price": ads.price,
             "description": ads.description,
             "is_published": ads.is_published,
-            "images": ads.images.url
+            "images": ads.image.url if ads.image else None
         }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
@@ -211,7 +211,7 @@ class CategoryDeleteView(DeleteView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdsDeleteView(DeleteView):
-    model = Ads
+    model = Ad
     success_url = "/"
 
     def delete(self, request, *args, **kwargs):
@@ -250,7 +250,7 @@ class UserListView(ListView):
 @method_decorator(csrf_exempt, name='dispatch')
 class UserCreateView(CreateView):
     model = User
-    fields = ['username', 'password', 'first_name', 'last_name', 'role', 'location_id']
+    fields = ['username', 'password', 'first_name', 'last_name', 'role', 'location']
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
@@ -268,5 +268,5 @@ class UserCreateView(CreateView):
                              'first_name': user.first_name,
                              'last_name': user.last_name,
                              'role': user.role,
-                             'locations': [str(u) for u in user.location.all()]},
+                             'location': [str(u) for u in user.location.all()]},
                             safe=False, json_dumps_params={'ensure_ascii': False})
