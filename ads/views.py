@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
@@ -175,15 +176,19 @@ class AdsCreateView(CreateView):
 
 
 class CategoryDetailView(DetailView):
+    model = Category
+
     def get(self, request, *args, **kwargs):
         cat = self.get_object()
         return JsonResponse({
             "id": cat.id,
-            "name": cat.name,
+            "name": cat.name
         }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class AdsDetailView(DetailView):
+    model = Ad
+
     def get(self, request, *args, **kwargs):
         ads = self.get_object()
         return JsonResponse({
@@ -232,6 +237,7 @@ class UserListView(ListView):
         page = request.GET.get("page")
         page_obj = paginator.get_page(page)
 
+
         response = []
         for user in page_obj:
             response.append({
@@ -242,6 +248,7 @@ class UserListView(ListView):
                 'last_name': user.last_name,
                 'role': user.role,
                 'age': user.age,
+                "total_ads": user.ads.count()
             })
         return JsonResponse({'ads': response, 'pages': page_obj.number, 'total': page_obj.paginator.count}, safe=False,
                             json_dumps_params={'ensure_ascii': False})
@@ -262,6 +269,7 @@ class UserCreateView(CreateView):
         for loc in data['location_id']:
             location = Location.objects.get_or_create(name=loc)
             user.location.add(location)
+
         return JsonResponse({'id': user.id,
                              'username': user.username,
                              'password': user.password,
@@ -270,3 +278,58 @@ class UserCreateView(CreateView):
                              'role': user.role,
                              'location': [str(u) for u in user.location.all()]},
                             safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class UserDeleteView(DeleteView):
+    model = User
+    success_url = "/"
+
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+
+        return JsonResponse({"status": "ok"}, status=200)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class UserUpdateView(UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'username', 'password', 'role', 'age', 'location']
+
+    def patch(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        user_data = json.loads(request.body)
+
+        self.object.first_name = user_data['first_name']
+        self.object.last_name = user_data['last_name']
+        self.object.username = user_data['username']
+        self.object.password = user_data['password']
+        self.object.role = user_data['role']
+        self.object.age = user_data['age']
+        self.object.location = get_object_or_404(Location, name=user_data["location"])
+
+        self.object.save()
+        return JsonResponse({
+            "first_name": self.object.first_name,
+            "last_name": self.object.last_name,
+            "username": self.object.username,
+            "password": self.object.password,
+            "role": self.object.role,
+            "age": self.object.agen,
+            "location": self.object.location
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class UserDetailView(DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        return JsonResponse({
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "username": user.username,
+            "password": user.password,
+            "role": user.role,
+            "age": user.age
+        }, safe=False, json_dumps_params={'ensure_ascii': False})
