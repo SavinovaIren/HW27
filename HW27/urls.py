@@ -22,4 +22,8 @@ urlpatterns = [
     path('ads/<int:pk>/upload_image/', AdUpdateImageView.as_view(), name='upload_image'),
     path('user/create/',UserCreateView.as_view()),
     path('user/',UserListView.as_view()),
+    path('user/delete/',UserDeleteView.as_view()),
+    path('user/update/<int:pk>/',UserUpdateView.as_view()),
+    path('user/<int:pk>/',UserDetailView.as_view()),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
