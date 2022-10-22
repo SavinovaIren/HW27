@@ -15,8 +15,8 @@ class Category(models.Model):
 
 class Location(models.Model):
     name = models.CharField(max_length=200)
-    lat = models.DecimalField(max_digits=8, decimal_places=6)
-    lng = models.DecimalField(max_digits=8, decimal_places=6)
+    lat = models.DecimalField(max_digits=8, decimal_places=6, null=True)
+    lng = models.DecimalField(max_digits=8, decimal_places=6, null=True)
 
     class Meta:
         verbose_name = 'Локация'
@@ -25,13 +25,25 @@ class Location(models.Model):
     def __str__(self):
         return self.name
 
+class UserRoles:
+    USER = 'member'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+
+    choices = (
+        (USER,'Пользователь'),
+        (ADMIN,'Админ'),
+        (MODERATOR, 'Модератор'),
+    )
+
+
 
 class User(models.Model):
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     username = models.CharField(max_length=200, unique=True)
     password = models.CharField(max_length=50)
-    role = models.CharField(max_length=50, default="member")
+    role = models.CharField(choices=UserRoles.choices,max_length=50, default="member")
     age = models.PositiveIntegerField()
     location = models.ManyToManyField(Location)
 
@@ -51,8 +63,10 @@ class Ad(models.Model):
     is_published = models.BooleanField(default=False)
     image = models.ImageField(upload_to='media/', null=True)
     category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE)
+
     def __str__(self):
         return self.name
+
     class Meta:
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'

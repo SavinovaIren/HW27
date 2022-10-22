@@ -1,10 +1,14 @@
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 
 from HW27 import settings
 from ads import views
 from ads.views import *
+
+router = SimpleRouter()
+router.register('location', LocationViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,8 +26,10 @@ urlpatterns = [
     path('ads/<int:pk>/upload_image/', AdUpdateImageView.as_view(), name='upload_image'),
     path('user/create/',UserCreateView.as_view()),
     path('user/',UserListView.as_view()),
-    path('user/delete/',UserDeleteView.as_view()),
+    path('user/delete/<int:pk>/',UserDeleteView.as_view()),
     path('user/update/<int:pk>/',UserUpdateView.as_view()),
     path('user/<int:pk>/',UserDetailView.as_view()),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += router.urls

@@ -8,13 +8,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, ListView, UpdateView, DeleteView
 import json
 
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView
+from rest_framework.viewsets import ModelViewSet
+
 from HW27 import settings
 from ads.models import Category, Ad, User, Location
+from ads.serializers import UserListSerializer, UserCreateSerializer, LocationSerializer, AdListSerializer, \
+    UserUpdateSerializer, UserDeleteSerializer, UserSerializer, AdsDeleteSerializer, CategoryDeleteSerializer
 
 
 def main(request):
     return JsonResponse({"status": "ok"})
 
+class LocationViewSet(ModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
 
 class CategoryView(ListView):
     model = Category
@@ -118,11 +126,36 @@ class AdsUpdateView(UpdateView):
         }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
-class AdsView(ListView):
-    model = Ad
-    queryset = Ad.objects.all()
+class AdsView(ListAPIView):
+    queryset = Ad.objects.order_by("-price").all()
+    serializer_class = AdListSerializer
 
     def get(self, request, *args, **kwargs):
+        categories = request.GET.getlist("cat", None)
+        if categories:
+            self.queryset = self.queryset.filter(category_id__in=categories)
+
+        text = request.GET.get("text", None)
+        if text:
+            self.queryset = self.queryset.filter(name__icontains=text)
+
+        location = request.GET.get("location", None)
+        if location:
+            self.queryset = self.queryset.filter(author__location__name__icontains=location)
+
+        price_from = request.GET.get("price_from")
+        price_to = request.GET.get("price_to")
+
+        if price_from:
+            self.queryset = self.queryset.filter(price__gte=price_from)
+
+        if price_to:
+            self.queryset = self.queryset.filter(price__lte=price_to)
+
+
+        return super().get(self, *args, **kwargs)
+
+    """def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
 
         self.object_list.order_by("-price")
@@ -143,7 +176,7 @@ class AdsView(ListView):
                 "is_published": ad.is_published
             })
         return JsonResponse({'ads': response, 'pages': page_obj.number, 'total': page_obj.paginator.count}, safe=False,
-                            json_dumps_params={'ensure_ascii': False})
+                            json_dumps_params={'ensure_ascii': False})"""
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -203,30 +236,37 @@ class AdsDetailView(DetailView):
         }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class CategoryDeleteView(DeleteView):
-    model = Category
+
+class CategoryDeleteView(DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = CategoryDeleteSerializer
+    """model = Category
     success_url = "/"
 
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)
 
-        return JsonResponse({"status": "ok"}, status=200)
+        return JsonResponse({"status": "ok"}, status=200)"""
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class AdsDeleteView(DeleteView):
-    model = Ad
+class AdsDeleteView(DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = AdsDeleteSerializer
+    """model = Ad
     success_url = "/"
 
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)
 
-        return JsonResponse({"status": "ok"}, status=200)
+        return JsonResponse({"status": "ok"}, status=200)"""
 
 
-class UserListView(ListView):
-    model = User
+class UserListView(ListAPIView):
+
+    queryset = User.objects.all()
+    serializer_class = UserListSerializer
+
+    """model = User
     queryset = User.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -251,11 +291,14 @@ class UserListView(ListView):
                 "total_ads": user.ads.count()
             })
         return JsonResponse({'ads': response, 'pages': page_obj.number, 'total': page_obj.paginator.count}, safe=False,
-                            json_dumps_params={'ensure_ascii': False})
+                            json_dumps_params={'ensure_ascii': False})"""
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class UserCreateView(CreateView):
+
+class UserCreateView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
+    """
     model = User
     fields = ['username', 'password', 'first_name', 'last_name', 'role', 'location']
 
@@ -277,25 +320,26 @@ class UserCreateView(CreateView):
                              'last_name': user.last_name,
                              'role': user.role,
                              'location': [str(u) for u in user.location.all()]},
-                            safe=False, json_dumps_params={'ensure_ascii': False})
+                            safe=False, json_dumps_params={'ensure_ascii': False})"""
 
 
-class UserDeleteView(DeleteView):
-    model = User
+class UserDeleteView(DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDeleteSerializer
+    """model = User
     success_url = "/"
 
     def delete(self, request, *args, **kwargs):
         super().delete(request, *args, **kwargs)
 
-        return JsonResponse({"status": "ok"}, status=200)
+        return JsonResponse({"status": "ok"}, status=200)"""
 
 
-@method_decorator(csrf_exempt, name="dispatch")
-class UserUpdateView(UpdateView):
-    model = User
-    fields = ['first_name', 'last_name', 'username', 'password', 'role', 'age', 'location']
+class UserUpdateView(UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserUpdateSerializer
 
-    def patch(self, request, *args, **kwargs):
+    """def patch(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
         user_data = json.loads(request.body)
 
@@ -316,13 +360,13 @@ class UserUpdateView(UpdateView):
             "role": self.object.role,
             "age": self.object.agen,
             "location": self.object.location
-        }, safe=False, json_dumps_params={'ensure_ascii': False})
+        }, safe=False, json_dumps_params={'ensure_ascii': False})"""
 
 
-class UserDetailView(DetailView):
-    model = User
-
-    def get(self, request, *args, **kwargs):
+class UserDetailView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    """def get(self, request, *args, **kwargs):
         user = self.get_object()
 
         return JsonResponse({
@@ -332,4 +376,4 @@ class UserDetailView(DetailView):
             "password": user.password,
             "role": user.role,
             "age": user.age
-        }, safe=False, json_dumps_params={'ensure_ascii': False})
+        }, safe=False, json_dumps_params={'ensure_ascii': False})"""
