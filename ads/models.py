@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 # Create your models here.
@@ -38,12 +39,17 @@ class UserRoles:
 
 
 
-class User(models.Model):
-    first_name = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=200)
-    username = models.CharField(max_length=200, unique=True)
-    password = models.CharField(max_length=50)
-    role = models.CharField(choices=UserRoles.choices,max_length=50, default="member")
+class User(AbstractUser):
+    USER = 'member'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+
+    choices = [(USER, 'Пользователь'),
+        (ADMIN, 'Админ'),
+        (MODERATOR, 'Модератор'),]
+
+
+    role = models.CharField(choices=choices, max_length=50, default="member")
     age = models.PositiveIntegerField()
     location = models.ManyToManyField(Location)
 
@@ -70,3 +76,14 @@ class Ad(models.Model):
     class Meta:
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
+
+class Selection(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='selections')
+    name = models.CharField(max_length=200, unique=True)
+    items = models.ManyToManyField(Ad)
+    class Meta:
+        verbose_name = 'Подборка объявлений'
+        verbose_name_plural = 'Подборки объявлений'
+
+    def __str__(self):
+        return self.name
