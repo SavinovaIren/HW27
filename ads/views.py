@@ -6,6 +6,7 @@ from django.views.generic import DetailView, CreateView, ListView, UpdateView, D
 import json
 
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from HW27 import settings
 from ads.models import Category, Ad, Location, Selection, User
-from ads.permissions import IsOwnerOrStuff
+from ads.permissions import IsOwnerOrStuff, IsOwnerOrStuffAd
 from ads.serializers import UserListSerializer, UserCreateSerializer, LocationSerializer, AdListSerializer, \
     UserUpdateSerializer, UserDeleteSerializer, UserSerializer, AdsDeleteSerializer, CategoryDeleteSerializer, \
     AdDetailSerializer, SelectionListSerializer, SelectionUpdateSerializer, SelectionCreateSerializer, \
@@ -99,7 +100,8 @@ class AdUpdateImageView(UpdateView):
                              }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@api_view["PATCH"]
+@permission_classes([IsAuthenticated, IsOwnerOrStuffAd])
 class AdsUpdateView(UpdateView):
     model = Ad
     fields = ['name', "author", "price", "description", "category", "is_published"]
@@ -215,6 +217,8 @@ class CategoryDeleteView(DestroyAPIView):
 class AdsDeleteView(DestroyAPIView):
     queryset = User.objects.all()
     serializer_class = AdsDeleteSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrStuffAd]
+
 
 
 class UserListView(ListAPIView):
@@ -231,6 +235,7 @@ class UserCreateView(CreateAPIView):
 class UserDeleteView(DestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserDeleteSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrStuff]
 
 
 
