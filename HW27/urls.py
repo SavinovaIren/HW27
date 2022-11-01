@@ -3,7 +3,9 @@ from django.contrib import admin
 from django.urls import path
 
 from rest_framework.routers import SimpleRouter
+from rest_framework.templatetags import rest_framework
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.authtoken.views import obtain_auth_token
 
 from ads import views
 from ads.views import *
@@ -37,9 +39,8 @@ urlpatterns = [
                   path('selection/delete/', SelectionDeleteView.as_view()),
                   path('selection/update/<int:pk>/', SelectionUpdateView.as_view()),
                   path('selection/', SelectionListView.as_view()),
-                  path('login/', views.obtain_auth_token), # не подключается к from ads import views ????
+                  path('login/', views.obtain_auth_token),  # подключается к from ads import views ????
                   path('logout/', Logout.as_view()),
-
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

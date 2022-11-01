@@ -19,7 +19,7 @@ from ads.permissions import IsOwnerOrStuff, IsOwnerOrStuffAd
 from ads.serializers import UserListSerializer, UserCreateSerializer, LocationSerializer, AdListSerializer, \
     UserUpdateSerializer, UserDeleteSerializer, UserSerializer, AdsDeleteSerializer, CategoryDeleteSerializer, \
     AdDetailSerializer, SelectionListSerializer, SelectionUpdateSerializer, SelectionCreateSerializer, \
-    SelectionDetailSerializer, SelectionDeleteSerializer
+    SelectionDetailSerializer, SelectionDeleteSerializer, AdsUpdateSerialiser
 
 
 def main(request):
@@ -100,36 +100,13 @@ class AdUpdateImageView(UpdateView):
                              }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
-@api_view["PATCH"]
-@permission_classes([IsAuthenticated, IsOwnerOrStuffAd])
-class AdsUpdateView(UpdateView):
-    model = Ad
-    fields = ['name', "author", "price", "description", "category", "is_published"]
 
-    def patch(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-        ads_data = json.loads(request.body)
 
-        self.object.name = ads_data["name"]
-        self.object.price = ads_data["price"]
-        self.object.author = get_object_or_404(User, username=ads_data["author"])
-        self.object.description = ads_data["description"]
-        self.object.is_published = ads_data["is_published"]
-        self.object.category = get_object_or_404(Category, name=ads_data["category"])
+class AdsUpdateView(UpdateAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdsUpdateSerialiser
+    permission_classes = [IsOwnerOrStuffAd]
 
-        self.object.save()
-
-        return JsonResponse({
-            "id": self.object.id,
-            "name": self.object.name,
-            "author": self.object.author,
-            "category": self.object.category,
-            "price": self.object.price,
-            "description": self.object.description,
-            "image": self.object.image.url,
-            "is_published": self.object.is_published
-
-        }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class AdsView(ListAPIView):
@@ -222,7 +199,6 @@ class AdsDeleteView(DestroyAPIView):
 
 
 class UserListView(ListAPIView):
-
     queryset = User.objects.all()
     serializer_class = UserListSerializer
 
@@ -230,6 +206,7 @@ class UserListView(ListAPIView):
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrStuff]
 
 
 class UserDeleteView(DestroyAPIView):
@@ -242,6 +219,7 @@ class UserDeleteView(DestroyAPIView):
 class UserUpdateView(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrStuff]
 
 
 

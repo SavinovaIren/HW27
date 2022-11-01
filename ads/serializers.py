@@ -71,64 +71,96 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
         return user
 
+
+class AdsUpdateSerialiser(serializers.Serializer):
+    author = serializers.SlugRelatedField(required=False, queryset=User.objects.all(),
+                                            slug_field='author')
+    category = serializers.SlugRelatedField(required=False, queryset=Category.objects.all(),
+                                            slug_field='category')
+    class Meta:
+        model = Ad
+        fields = ['name', "author", "price", "description", "category", "is_published"]
+
+    def is_valid(self, *, raise_exception=False):
+        self._author = self.initial_data.pop('author')
+        self._category = self.initial_data.pop('category')
+        return super().is_valid(raise_exception=raise_exception)
+
+    def save(self, **kwargs):
+        ad = super().save(**kwargs)
+        for auth in self._author:
+            author, _ = Ad.objects.get_or_create(name=auth)
+            ad.author.add(author)
+        for cat in self._category:
+            category, _ = Ad.objects.get_or_create(name=cat)
+            ad.author.add(category)
+        return ad
+
+
+
 class UserDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id']
 
+
 class UserSerializer(serializers.ModelSerializer):
     location = serializers.SlugRelatedField(read_only=True,
                                             many=True, slug_field='name')
+
     class Meta:
         model = User
         fields = '__all__'
+
 
 class AdsDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ad
         fields = ['id']
 
+
 class CategoryDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id']
 
+
 class AdDetailSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+
     class Meta:
         model = Ad
         fields = "__all__"
 
-class SelectionListSerializer(serializers.ModelSerializer):
 
+class SelectionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Selection
         fields = ['id', 'name']
 
-class SelectionUpdateSerializer(serializers.ModelSerializer):
 
+class SelectionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Selection
         fields = "__all__"
+
 
 class SelectionDetailSerializer(serializers.ModelSerializer):
-
     items = AdListSerializer(many=True)
+
     class Meta:
         model = Selection
         fields = "__all__"
+
 
 class SelectionDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Selection
         fields = "__all__"
 
+
 class SelectionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Selection
         fields = "__all__"
-
-
-
-
