@@ -72,29 +72,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return user
 
 
-class AdsUpdateSerialiser(serializers.Serializer):
-    author = serializers.SlugRelatedField(required=False, queryset=User.objects.all(),
-                                            slug_field='author')
-    category = serializers.SlugRelatedField(required=False, queryset=Category.objects.all(),
-                                            slug_field='category')
+class AdsUpdateSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Ad
-        fields = ['name', "author", "price", "description", "category", "is_published"]
+        fields = "__all__"
 
-    def is_valid(self, *, raise_exception=False):
-        self._author = self.initial_data.pop('author')
-        self._category = self.initial_data.pop('category')
-        return super().is_valid(raise_exception=raise_exception)
-
-    def save(self, **kwargs):
-        ad = super().save(**kwargs)
-        for auth in self._author:
-            author, _ = Ad.objects.get_or_create(name=auth)
-            ad.author.add(author)
-        for cat in self._category:
-            category, _ = Ad.objects.get_or_create(name=cat)
-            ad.author.add(category)
-        return ad
 
 
 
