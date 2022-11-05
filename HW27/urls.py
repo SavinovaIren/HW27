@@ -1,11 +1,11 @@
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from rest_framework.routers import SimpleRouter
 from rest_framework.templatetags import rest_framework
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.authtoken.views import obtain_auth_token
+
 
 from ads import views
 from ads.views import *
@@ -32,15 +32,15 @@ urlpatterns = [
                   path('user/delete/<int:pk>/', UserDeleteView.as_view()),
                   path('user/update/<int:pk>/', UserUpdateView.as_view()),
                   path('user/<int:pk>/', UserDetailView.as_view()),
-                  path('token/', TokenObtainPairView.as_view()),
-                  path('token/refresh/', TokenRefreshView.as_view()),
+                  path('user/token/', TokenObtainPairView.as_view()),
+                  path('user/token/refresh/', TokenRefreshView.as_view()),
                   path('selection/<int:pk>/', SelectionDetailView.as_view()),
                   path('selection/create/', SelectionCreateView.as_view()),
                   path('selection/delete/', SelectionDeleteView.as_view()),
                   path('selection/update/<int:pk>/', SelectionUpdateView.as_view()),
                   path('selection/', SelectionListView.as_view()),
-                  path('login/', views.obtain_auth_token),  # подключается к from ads import views ????
-                  path('logout/', Logout.as_view()),
+                  path('user/', include('ads.urls.urls_log')),
+
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
