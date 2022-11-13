@@ -1,10 +1,37 @@
+from datetime import datetime, date, timedelta
+
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MinLengthValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+def check_email(value:str):
+    if "rambler.ru" in value:
+        raise ValidationError(
+            '%(value)s is in the email',
+            params={'value': value},
+        )
 
-# Create your models here.
+def check_age(value: datetime):
+    data = tuple([int(user) for user in value.rsplit("-")])
+    birth_date = datetime(*data)
+    age = (datetime.today() - birth_date) // timedelta(days=365.2425)
+    if age < 9:
+        raise ValidationError(
+            '%(value)s is too small age',
+            params={'value': value},
+        )
+
+def is_published(value):
+    if value:
+        raise ValidationError("is_published can't be True")
+    return value
+
+
+
 class Category(models.Model):
     name = models.CharField(max_length=200, unique=True)
+    slug = models.CharField(max_length=10, unique=True, validators=[MinLengthValidator(5)])
 
     class Meta:
         verbose_name = 'Категория'
@@ -52,6 +79,8 @@ class User(AbstractUser):
     role = models.CharField(choices=choices, max_length=50, default="member")
     age = models.PositiveIntegerField()
     location = models.ManyToManyField(Location)
+    email = models.CharField(max_length=100, unique=True, validators=[check_email])
+    birth_date = models.DateField(validators=[check_age])
 
     def __str__(self):
         return self.username
@@ -62,11 +91,11 @@ class User(AbstractUser):
 
 
 class Ad(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, validators=[MinLengthValidator(10)])
     author = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="ads")
-    price = models.PositiveIntegerField()
+    price = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     description = models.TextField(null=True)
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False,validators=[is_published])
     image = models.ImageField(upload_to='media/', null=True)
     category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE)
 
