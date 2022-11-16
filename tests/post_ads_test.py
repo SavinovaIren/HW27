@@ -20,8 +20,8 @@ def test_ad_create(api_client, ad):
     expected_response = AdListSerializer(ad).data
     response = api_client.post("/ads/", data=json.dumps(data), content_type='application/json')
     response_data = response.json()
-    assert response_data['author_name'] == expected_response['author_name']
-    assert response_data['category_name'] == expected_response['category_name']
+    assert response_data['author'] == expected_response['author']
+    assert response_data['category'] == expected_response['category']
     assert response_data['created'] == expected_response['created']
     assert response_data['description'] == expected_response['description']
     assert response_data['image'] == expected_response['image']
@@ -52,6 +52,6 @@ def test_ad_list(api_client):
 def test_ad_detail(api_client, ad):
     expected_response = AdListSerializer(ad).data
 
-    response = api_client.get(f'/ad/{ad.pk}/')
+    response = api_client.get(f'/ads/{ad.pk}/')
     assert response.status_code == 200
     assert response.data == expected_response

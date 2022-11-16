@@ -53,18 +53,6 @@ class Location(models.Model):
     def __str__(self):
         return self.name
 
-class UserRoles:
-    USER = 'member'
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-
-    choices = (
-        (USER,'Пользователь'),
-        (ADMIN,'Админ'),
-        (MODERATOR, 'Модератор'),
-    )
-
-
 
 class User(AbstractUser):
     USER = 'member'

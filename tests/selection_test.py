@@ -11,7 +11,7 @@ def test_selection_create(api_client, ad, selection):
             "owner": selection.owner.id,
             "items": [ad.id]}
 
-    expected_response = {'name': 'test_name_select',
+    expected_response = {'name': 'test_name_s',
                          'owner': ad.author.id,
                          'items': [ad.id]}
     response = api_client.post('/selection/create/', data=json.dumps(data), content_type='application/json')

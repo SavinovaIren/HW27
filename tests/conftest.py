@@ -19,6 +19,9 @@ def api_client(db):
         username='johny',
         email='jh@test.ru',
         password='12312',
+        age=35,
+        birth_date="1987-05-23",
+
 
     )
     client = APIClient()
