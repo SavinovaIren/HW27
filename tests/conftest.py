@@ -21,8 +21,6 @@ def api_client(db):
         password='12312',
         age=35,
         birth_date="1987-05-23",
-
-
     )
     client = APIClient()
     token = RefreshToken.for_user(user)

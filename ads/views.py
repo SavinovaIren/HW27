@@ -19,7 +19,7 @@ from ads.permissions import IsOwnerOrStuff, IsOwnerOrStuffAd
 from ads.serializers import UserListSerializer, UserCreateSerializer, LocationSerializer, AdListSerializer, \
     UserUpdateSerializer, UserDeleteSerializer, UserSerializer, AdsDeleteSerializer, CategoryDeleteSerializer, \
     AdDetailSerializer, SelectionListSerializer, SelectionUpdateSerializer, SelectionCreateSerializer, \
-    SelectionDetailSerializer, SelectionDeleteSerializer, AdsUpdateSerialiser
+    SelectionDetailSerializer, SelectionDeleteSerializer, AdsUpdateSerialiser, AdsCreateSerializer
 
 
 def main(request):
@@ -139,33 +139,35 @@ class AdsView(ListAPIView):
         return super().get(self, *args, **kwargs)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class AdsCreateView(CreateView):
-    model = Ad
-    fields = ["name", "author", "category", "price", "description", "is_published"]
-
-    def post(self, request, *args, **kwargs):
-        ads_list = json.loads(request.body)
-        author = get_object_or_404(User, username=ads_list['author'])
-        category = get_object_or_404(Category, name=ads_list['category'])
-
-        ads = Ad.objects.create(
-            name=ads_list["name"],
-            author=author,
-            category=category,
-            price=ads_list["price"],
-            description=ads_list["description"],
-            is_published=ads_list["is_published"] if 'is_published' in ads_list else False
-        )
-
-        return JsonResponse({"id": ads.id,
-                             "name": ads.name,
-                             "author": ads.author.username,
-                             "category": ads.category.name,
-                             "price": ads.price,
-                             "description": ads.description,
-                             "is_published": ads.is_published
-                             }, safe=False, json_dumps_params={'ensure_ascii': False})
+class AdsCreateView(CreateAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdsCreateSerializer
+#class AdsCreateView(CreateView):
+    # model = Ad
+    # fields = ["name", "author", "category", "price", "description", "is_published"]
+    #
+    # def post(self, request, *args, **kwargs):
+    #     ads_list = json.loads(request.body)
+    #     author = get_object_or_404(User, username=ads_list['author'])
+    #     category = get_object_or_404(Category, name=ads_list['category'])
+    #
+    #     ads = Ad.objects.create(
+    #         name=ads_list["name"],
+    #         author=author,
+    #         category=category,
+    #         price=ads_list["price"],
+    #         description=ads_list["description"],
+    #         is_published=ads_list["is_published"] if 'is_published' in ads_list else False
+    #     )
+    #
+    #     return JsonResponse({"id": ads.id,
+    #                          "name": ads.name,
+    #                          "author": ads.author.username,
+    #                          "category": ads.category.name,
+    #                          "price": ads.price,
+    #                          "description": ads.description,
+    #                          "is_published": ads.is_published
+    #                          }, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 class CategoryDetailView(DetailView):

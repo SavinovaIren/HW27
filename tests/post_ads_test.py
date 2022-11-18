@@ -8,26 +8,26 @@ from factories import AdFactory
 
 
 @pytest.mark.django_db
-def test_ad_create(api_client, ad):
+def test_ad_create(client, user, category):
     data = {
-        "name": "test_ad_name",
-        "author": ad.author.id,
+        "name": "Алиса в стране чудес",
+        "author":user.pk,
         "price": 100,
-        "is_published": False,
-        "category": ad.category.id,
-    }
+        "category": category.pk
 
-    expected_response = AdListSerializer(ad).data
-    response = api_client.post("/ads/", data=json.dumps(data), content_type='application/json')
+    }
+    response = client.post("/ads/create/", data=json.dumps(data), content_type='application/json')
+    expected_response = response.data
     response_data = response.json()
-    assert response_data['author'] == expected_response['author']
-    assert response_data['category'] == expected_response['category']
-    assert response_data['created'] == expected_response['created']
-    assert response_data['description'] == expected_response['description']
-    assert response_data['image'] == expected_response['image']
-    assert response_data['is_published'] == expected_response['is_published']
-    assert response_data['name'] == expected_response['name']
-    assert response_data['price'] == expected_response['price']
+
+    assert response_data['author'] == user.pk
+    assert response_data['category'] == category.pk
+    # assert response_data['created'] == expected_response['created']
+    assert response_data['description'] == None
+    assert response_data['image'] == None
+    assert response_data['is_published'] == False
+    assert response_data['name'] == "Алиса в стране чудес"
+    assert response_data['price'] == 100
     assert response.status_code == 201
 
 

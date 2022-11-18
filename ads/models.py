@@ -84,7 +84,7 @@ class Ad(models.Model):
     price = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     description = models.TextField(null=True)
     is_published = models.BooleanField(default=False,validators=[is_published])
-    image = models.ImageField(upload_to='media/', null=True)
+    image = models.ImageField(upload_to='media/', null=True, blank=True)
     category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
